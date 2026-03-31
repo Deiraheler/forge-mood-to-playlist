@@ -1,8 +1,9 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import MoodInput from './components/MoodInput'
 import ErrorBanner from './components/ErrorBanner'
 import PlaylistHeader from './components/PlaylistHeader'
 import TrackList from './components/TrackList'
+import SkeletonPlaylist from './components/SkeletonPlaylist'
 import { generatePlaylist, type PlaylistResponse } from './api/client'
 
 const MOOD_SUGGESTIONS = [
@@ -18,7 +19,30 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null)
   const [moodValue, setMoodValue] = useState('')
+  const [playlistKey, setPlaylistKey] = useState(0)
   const inputRef = useRef<HTMLDivElement>(null)
+  const bgRef = useRef<HTMLDivElement>(null)
+
+  // Scroll-based parallax: shift the background gradient hue as user scrolls
+  useEffect(() => {
+    const el = document.documentElement
+    let rafId: number
+    const onScroll = () => {
+      rafId = requestAnimationFrame(() => {
+        const scrollY = window.scrollY
+        const maxScroll = document.body.scrollHeight - window.innerHeight
+        const progress = maxScroll > 0 ? scrollY / maxScroll : 0
+        // Smoothly shift hue from 270 (purple) → 220 (blue) as user scrolls down
+        const hue = Math.round(270 - progress * 50)
+        el.style.setProperty('--bg-hue', String(hue))
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(rafId)
+    }
+  }, [])
 
   const handleGenerate = useCallback(async (mood: string) => {
     setError(null)
@@ -27,6 +51,7 @@ function App() {
     try {
       const result = await generatePlaylist(mood)
       setPlaylist(result)
+      setPlaylistKey(k => k + 1)
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Something went wrong. Please try again.'
@@ -54,7 +79,7 @@ function App() {
   }, [handleGenerate])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex flex-col">
+    <div ref={bgRef} className="min-h-screen bg-dynamic flex flex-col">
       {/* Header */}
       <header className="py-6 sm:py-8 text-center px-4">
         <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
@@ -107,18 +132,14 @@ function App() {
         </div>
 
         {/* Loading skeleton */}
-        {isLoading && (
-          <div className="w-full max-w-2xl mx-auto mt-4 sm:mt-6 flex flex-col gap-3 animate-pulse">
-            <div className="h-28 sm:h-36 rounded-2xl bg-gray-800/60" />
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-r-xl bg-gray-800/40 border-l-4 border-purple-500/30" />
-            ))}
-          </div>
-        )}
+        {isLoading && <SkeletonPlaylist />}
 
-        {/* Playlist result */}
+        {/* Playlist result — animates in when it first appears */}
         {!isLoading && playlist && (
-          <div className="w-full max-w-2xl mx-auto mt-4 sm:mt-6 flex flex-col gap-0">
+          <div
+            key={playlistKey}
+            className="w-full max-w-2xl mx-auto mt-4 sm:mt-6 flex flex-col gap-0 playlist-enter"
+          >
             <PlaylistHeader playlist={playlist} />
             <TrackList tracks={playlist.tracks} />
 

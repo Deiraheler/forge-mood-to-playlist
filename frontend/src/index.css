@@ -63,3 +63,65 @@ button, input, textarea {
 .animate-fade-in-up {
   animation: fade-in-up 0.35s ease-out;
 }
+
+/* ── Skeleton loader ── */
+
+/* Shimmer pulse: slightly brighter than the base gray */
+@keyframes skeleton-shimmer {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+.skeleton-pulse {
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+/* Individual skeleton rows/sections fade in from below */
+@keyframes skeleton-row-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.skeleton-fade-in {
+  animation: skeleton-row-in 0.3s ease-out both;
+}
+
+/* ── Playlist result enter animation ── */
+@keyframes playlist-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.playlist-enter {
+  animation: playlist-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Mood input exit / enter (swap) ── */
+@keyframes section-fade-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.97); }
+}
+
+@keyframes section-fade-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.section-fade-in {
+  animation: section-fade-in 0.3s ease-out both;
+}
+
+/* ── Dynamic background gradient shift ── */
+:root {
+  --bg-hue: 270; /* default purple-ish */
+}
+
+.bg-dynamic {
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--bg-hue), 20%, 10%) 0%,
+    hsl(calc(var(--bg-hue) + 30), 15%, 5%) 60%,
+    #000 100%
+  );
+  transition: background 0.8s ease;
+}
