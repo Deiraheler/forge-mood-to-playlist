@@ -9,6 +9,7 @@ export default function SkeletonPlaylist() {
       className="w-full max-w-2xl mx-auto mt-4 sm:mt-6 flex flex-col gap-0 skeleton-playlist"
       aria-label="Loading playlist…"
       aria-busy="true"
+      data-testid="skeleton-playlist"
     >
       {/* ── Header skeleton (mirrors PlaylistHeader) ── */}
       <div className="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden shadow-xl shadow-black/40 skeleton-fade-in">

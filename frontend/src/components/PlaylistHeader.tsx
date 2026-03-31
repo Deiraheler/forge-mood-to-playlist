@@ -32,7 +32,7 @@ function moodToGradient(mood: string): { from: string; to: string } {
 }
 
 export default function PlaylistHeader({ playlist }: PlaylistHeaderProps) {
-  const { playlist_name, mood, description } = playlist
+  const { playlist_name, mood, description, cached } = playlist
   const { from, to } = moodToGradient(mood)
 
   return (
@@ -65,16 +65,31 @@ export default function PlaylistHeader({ playlist }: PlaylistHeaderProps) {
               {playlist_name}
             </h2>
 
-            {/* Mood badge */}
-            <span
-              className="inline-flex items-center self-start gap-1.5 mt-0.5 sm:mt-1
-                         px-2.5 py-1 rounded-full text-xs font-semibold
-                         bg-white/10 text-gray-200 border border-white/10
-                         backdrop-blur-sm max-w-full truncate"
-            >
-              <span aria-hidden="true" className="shrink-0">🎭</span>
-              <span className="truncate">{mood}</span>
-            </span>
+            {/* Mood badge + cached badge row */}
+            <div className="flex flex-wrap items-center gap-2 mt-0.5 sm:mt-1">
+              <span
+                className="inline-flex items-center self-start gap-1.5
+                           px-2.5 py-1 rounded-full text-xs font-semibold
+                           bg-white/10 text-gray-200 border border-white/10
+                           backdrop-blur-sm max-w-full truncate"
+              >
+                <span aria-hidden="true" className="shrink-0">🎭</span>
+                <span className="truncate">{mood}</span>
+              </span>
+
+              {cached && (
+                <span
+                  aria-label="Served from cache"
+                  title="Result served from cache"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full
+                             text-xs font-semibold bg-green-900/50 text-green-300
+                             border border-green-700/50"
+                >
+                  <span aria-hidden="true">⚡</span>
+                  Cached
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
