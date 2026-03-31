@@ -22,3 +22,13 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Fade-in animation for ErrorBanner and other transient elements */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}

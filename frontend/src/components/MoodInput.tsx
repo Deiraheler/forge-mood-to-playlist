@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 const PLACEHOLDER_EXAMPLES = [
   '3am can\'t sleep…',
@@ -7,6 +7,17 @@ const PLACEHOLDER_EXAMPLES = [
   'first day of summer…',
   'deep in the zone…',
   'sunday morning slow…',
+]
+
+const CURATING_MESSAGES = [
+  'Tuning into your vibe…',
+  'Scanning the sonic universe…',
+  'Matching moods to melodies…',
+  'Digging through the crates…',
+  'Reading between the frequencies…',
+  'Consulting the music oracle…',
+  'Finding your perfect sound…',
+  'Assembling the tracklist…',
 ]
 
 interface MoodInputProps {
@@ -20,6 +31,8 @@ export default function MoodInput({ onGenerate, isLoading = false }: MoodInputPr
   const [displayedPlaceholder, setDisplayedPlaceholder] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
   const [charIndex, setCharIndex] = useState(0)
+  const [curatingMsg, setCuratingMsg] = useState(CURATING_MESSAGES[0])
+  const curatingIndexRef = useRef(0)
 
   // Typewriter effect for placeholder cycling
   useEffect(() => {
@@ -53,6 +66,22 @@ export default function MoodInput({ onGenerate, isLoading = false }: MoodInputPr
       setPlaceholderIndex(i => (i + 1) % PLACEHOLDER_EXAMPLES.length)
     }
   }, [mood, charIndex, isDeleting, placeholderIndex])
+
+  // Cycle through curating messages while loading
+  useEffect(() => {
+    if (!isLoading) return
+    // Reset to a random starting message
+    const start = Math.floor(Math.random() * CURATING_MESSAGES.length)
+    curatingIndexRef.current = start
+    setCuratingMsg(CURATING_MESSAGES[start])
+
+    const interval = setInterval(() => {
+      curatingIndexRef.current = (curatingIndexRef.current + 1) % CURATING_MESSAGES.length
+      setCuratingMsg(CURATING_MESSAGES[curatingIndexRef.current])
+    }, 1800)
+
+    return () => clearInterval(interval)
+  }, [isLoading])
 
   const handleSubmit = useCallback(() => {
     const trimmed = mood.trim()
@@ -116,7 +145,7 @@ export default function MoodInput({ onGenerate, isLoading = false }: MoodInputPr
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">
             <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Generating…
+            <span className="transition-opacity duration-500">{curatingMsg}</span>
           </span>
         ) : (
           '✨ Generate Playlist'
