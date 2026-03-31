@@ -47,6 +47,14 @@ npm install
 npm run dev
 ```
 
+## Verifying the Setup
+
+Once both servers are running:
+
+1. **Frontend** — open http://localhost:5173 → see the default React starter page
+2. **Backend health** — open http://localhost:8000/api/health → `{"status":"ok"}`
+3. **Proxy** — from the frontend dev server: `curl http://localhost:5173/api/health` → `{"status":"ok"}` (Vite proxies `/api/*` → `http://localhost:8000`)
+
 ## Environment Variables
 
 Create `backend/.env`:
