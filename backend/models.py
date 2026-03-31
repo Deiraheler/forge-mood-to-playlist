@@ -16,6 +16,7 @@ class PlaylistResponse(BaseModel):
     playlist_name: str = Field(..., description="A creative name for the playlist")
     description: str = Field(..., description="An overall vibe description for the playlist")
     tracks: list[Track] = Field(..., description="List of tracks in the playlist")
+    cached: bool = Field(default=False, description="Whether this response was served from cache")
 
 
 __all__ = ["MoodRequest", "Track", "PlaylistResponse"]

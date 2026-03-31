@@ -1,9 +1,11 @@
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from redis.asyncio import Redis
 
 import ai_service
+from cache import get_cached_playlist, get_redis, set_cached_playlist
 from config import settings
 from models import MoodRequest, PlaylistResponse
 
@@ -26,13 +28,19 @@ async def health():
 
 
 @app.post("/api/generate", response_model=PlaylistResponse, status_code=200)
-async def generate_playlist(request: MoodRequest) -> PlaylistResponse:
+async def generate_playlist(
+    request: MoodRequest,
+    http_response: Response,
+    redis: Redis | None = Depends(get_redis),
+) -> PlaylistResponse:
     """
     Generate a mood-based playlist.
 
     - **mood**: A mood or situation string (1–200 characters). Pydantic enforces
       this; invalid input returns HTTP 422 automatically.
-    - Returns a ``PlaylistResponse`` with playlist name, description, and tracks.
+    - Returns a ``PlaylistResponse`` with playlist name, description, tracks,
+      and a ``cached`` boolean indicating whether the result came from cache.
+    - Sets the ``X-Cache`` response header to ``HIT`` or ``MISS``.
     - Returns HTTP 500 if the AI service fails.
     """
     # Enforce the 200-char cap at the endpoint level (models.py allows up to 500;
@@ -43,9 +51,16 @@ async def generate_playlist(request: MoodRequest) -> PlaylistResponse:
             detail="mood must be 200 characters or fewer.",
         )
 
+    # --- Cache lookup ---
+    cached_playlist = await get_cached_playlist(redis, request.mood)
+    if cached_playlist is not None:
+        http_response.headers["X-Cache"] = "HIT"
+        cached_playlist.cached = True
+        return cached_playlist
+
+    # --- Cache miss: generate via AI ---
     try:
         playlist = await ai_service.generate_playlist(request.mood)
-        return playlist
     except ValueError as exc:
         logger.error("Playlist generation returned invalid data: %s", exc)
         raise HTTPException(
@@ -64,3 +79,10 @@ async def generate_playlist(request: MoodRequest) -> PlaylistResponse:
             status_code=500,
             detail="An unexpected error occurred while generating the playlist.",
         ) from exc
+
+    # Store fresh result in cache (fire-and-forget; errors logged inside helper)
+    playlist.cached = False
+    await set_cached_playlist(redis, request.mood, playlist)
+
+    http_response.headers["X-Cache"] = "MISS"
+    return playlist
