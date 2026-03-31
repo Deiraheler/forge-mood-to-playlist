@@ -98,14 +98,14 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
     }
 
     return (
-      <div ref={ref} className="w-full max-w-2xl mx-auto flex flex-col gap-4">
+      <div ref={ref} className="w-full max-w-2xl mx-auto flex flex-col gap-3 sm:gap-4">
         <div className="relative">
           <textarea
             value={value}
             onChange={e => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={displayedPlaceholder || 'Describe your mood or situation…'}
-            rows={4}
+            rows={3}
             disabled={isLoading}
             className="
               w-full resize-none
@@ -113,8 +113,8 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
               bg-gray-800
               text-white
               placeholder-gray-500
-              px-5 py-4
-              text-lg leading-relaxed
+              px-4 py-3 sm:px-5 sm:py-4
+              text-base sm:text-lg leading-relaxed
               border border-gray-700
               outline-none
               focus:ring-2 focus:ring-purple-500 focus:border-transparent
@@ -122,7 +122,7 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           />
-          <span className="absolute bottom-3 right-4 text-xs text-gray-600 select-none">
+          <span className="absolute bottom-2.5 right-3 sm:bottom-3 sm:right-4 text-xs text-gray-600 select-none hidden sm:inline">
             {value.length > 0 && `${value.length} chars · Enter to generate`}
           </span>
         </div>
@@ -132,8 +132,9 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
           disabled={!value.trim() || isLoading}
           className="
             w-full py-4
+            min-h-[52px]
             rounded-xl
-            font-semibold text-lg text-white
+            font-semibold text-base sm:text-lg text-white
             bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400
             hover:from-purple-500 hover:via-pink-400 hover:to-orange-300
             active:scale-[0.98]
@@ -141,12 +142,13 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
             shadow-lg shadow-purple-900/40
             disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100
             cursor-pointer
+            touch-manipulation
           "
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
               <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span className="transition-opacity duration-500">{curatingMsg}</span>
+              <span className="transition-opacity duration-500 text-sm sm:text-base">{curatingMsg}</span>
             </span>
           ) : (
             '✨ Generate Playlist'

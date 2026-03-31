@@ -40,48 +40,48 @@ export default function PlaylistHeader({ playlist }: PlaylistHeaderProps) {
       {/* Card */}
       <div className="rounded-2xl bg-gray-800/60 border border-gray-700/50 overflow-hidden shadow-xl shadow-black/40">
         {/* Top band — album-art placeholder + text */}
-        <div className="flex items-end gap-5 p-5 sm:p-6">
+        <div className="flex items-end gap-4 sm:gap-5 p-4 sm:p-5 md:p-6">
           {/* Generative album-art square */}
           <div
-            className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 rounded-xl shadow-lg shadow-black/50 flex items-center justify-center"
+            className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-xl shadow-lg shadow-black/50 flex items-center justify-center"
             style={{
               background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)`,
             }}
             aria-hidden="true"
           >
             {/* Subtle music-note icon overlay */}
-            <span className="text-white/30 text-4xl select-none">♫</span>
+            <span className="text-white/30 text-3xl sm:text-4xl select-none">♫</span>
           </div>
 
           {/* Text block */}
-          <div className="flex flex-col gap-2 min-w-0">
+          <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0">
             {/* "PLAYLIST" label — Spotify-style */}
             <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
               Playlist
             </span>
 
             {/* Playlist name */}
-            <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight line-clamp-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight line-clamp-2">
               {playlist_name}
             </h2>
 
             {/* Mood badge */}
             <span
-              className="inline-flex items-center self-start gap-1.5 mt-1
-                         px-3 py-1 rounded-full text-xs font-semibold
+              className="inline-flex items-center self-start gap-1.5 mt-0.5 sm:mt-1
+                         px-2.5 py-1 rounded-full text-xs font-semibold
                          bg-white/10 text-gray-200 border border-white/10
-                         backdrop-blur-sm"
+                         backdrop-blur-sm max-w-full truncate"
             >
-              <span aria-hidden="true">🎭</span>
-              {mood}
+              <span aria-hidden="true" className="shrink-0">🎭</span>
+              <span className="truncate">{mood}</span>
             </span>
           </div>
         </div>
 
         {/* Description bar */}
         {description && (
-          <div className="px-5 sm:px-6 pb-5">
-            <p className="text-sm text-gray-400 leading-relaxed">
+          <div className="px-4 sm:px-5 md:px-6 pb-4 sm:pb-5">
+            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
               {description}
             </p>
           </div>

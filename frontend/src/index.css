@@ -17,10 +17,31 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #000;
   color: #f9fafb;
+  /* Smooth scrolling on mobile */
+  scroll-behavior: smooth;
+  /* Prevent horizontal overflow on narrow screens */
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
+  /* Prevent content overflow at 320px+ */
+  min-width: 320px;
+}
+
+/* Suppress the blue tap highlight on mobile webkit */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure buttons and inputs use the body font */
+button, input, textarea {
+  font-family: inherit;
+}
+
+/* Smooth momentum scrolling on iOS */
+.overflow-y-auto, .overflow-auto {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Fade-in animation for ErrorBanner and other transient elements */
