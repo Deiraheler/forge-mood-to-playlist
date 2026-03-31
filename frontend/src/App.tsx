@@ -80,18 +80,30 @@ function App() {
 
   return (
     <div ref={bgRef} className="min-h-screen bg-dynamic flex flex-col">
+      {/* Skip-to-content link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-purple-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium"
+      >
+        Skip to main content
+      </a>
+
       {/* Header */}
-      <header className="py-6 sm:py-8 text-center px-4">
-        <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+      <header className="py-6 sm:py-8 text-center px-4" role="banner">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight gradient-text">
           🎵 Mood-to-Playlist
         </h1>
         <p className="mt-2 text-gray-400 text-xs sm:text-sm">
-          Describe your mood and get a playlist that fits.
+          Describe your mood or situation — get a playlist that fits.
         </p>
       </header>
 
       {/* Main content area */}
-      <main className="flex-1 flex flex-col items-center justify-start px-3 sm:px-4 md:px-6 pt-4 sm:pt-8 pb-16 gap-4">
+      <main
+        id="main-content"
+        role="main"
+        className="flex-1 flex flex-col items-center justify-start px-3 sm:px-4 md:px-6 pt-4 sm:pt-8 pb-16 gap-4"
+      >
         {error && (
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         )}
@@ -105,69 +117,85 @@ function App() {
         />
 
         {/* Mood suggestion chips */}
-        <div className="w-full max-w-2xl mx-auto flex flex-wrap gap-2 justify-center">
-          {MOOD_SUGGESTIONS.map(chip => (
-            <button
-              key={chip}
-              onClick={() => handleChipClick(chip)}
-              disabled={isLoading}
-              className="
-                px-4 py-2 sm:py-1.5
-                min-h-[40px] sm:min-h-0
-                rounded-full
-                text-sm font-medium
-                bg-gray-800 text-gray-300
-                border border-gray-700
-                hover:border-purple-500 hover:text-purple-300 hover:bg-gray-700
-                active:scale-95
-                transition-all duration-150
-                disabled:opacity-40 disabled:cursor-not-allowed
-                cursor-pointer
-                touch-manipulation
-              "
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
-        {/* Loading skeleton */}
-        {isLoading && <SkeletonPlaylist />}
-
-        {/* Playlist result — animates in when it first appears */}
-        {!isLoading && playlist && (
-          <div
-            key={playlistKey}
-            className="w-full max-w-2xl mx-auto mt-4 sm:mt-6 flex flex-col gap-0 playlist-enter"
-          >
-            <PlaylistHeader playlist={playlist} />
-            <TrackList tracks={playlist.tracks} />
-
-            {/* Try Another Mood */}
-            <div className="mt-8 flex justify-center px-2">
+        <nav aria-label="Mood suggestions" className="w-full max-w-2xl mx-auto">
+          <div className="flex flex-wrap gap-2 justify-center" role="list">
+            {MOOD_SUGGESTIONS.map(chip => (
               <button
-                onClick={handleTryAnother}
+                key={chip}
+                role="listitem"
+                onClick={() => handleChipClick(chip)}
+                disabled={isLoading}
+                aria-label={`Use mood: ${chip}`}
                 className="
-                  w-full sm:w-auto
-                  px-8 py-3.5 sm:py-3
-                  min-h-[48px] sm:min-h-0
+                  px-4 py-2 sm:py-1.5
+                  min-h-[40px] sm:min-h-0
                   rounded-full
-                  font-semibold text-white text-base
-                  bg-gray-800 border border-gray-600
-                  hover:border-purple-500 hover:bg-gray-700 hover:text-purple-300
+                  text-sm font-medium
+                  bg-gray-800 text-gray-300
+                  border border-gray-700
+                  hover:border-purple-500 hover:text-purple-300 hover:bg-gray-700
                   active:scale-95
-                  transition-all duration-200
-                  shadow-md
+                  transition-all duration-150
+                  disabled:opacity-40 disabled:cursor-not-allowed
                   cursor-pointer
                   touch-manipulation
                 "
               >
-                🔄 Try Another Mood
+                {chip}
               </button>
-            </div>
+            ))}
           </div>
-        )}
+        </nav>
+
+        {/* Loading skeleton */}
+        {isLoading && <SkeletonPlaylist />}
+
+        {/* Playlist result — aria-live so screen readers announce it */}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="w-full max-w-2xl mx-auto"
+        >
+          {!isLoading && playlist && (
+            <div
+              key={playlistKey}
+              className="mt-4 sm:mt-6 flex flex-col gap-0 playlist-enter"
+            >
+              <PlaylistHeader playlist={playlist} />
+              <TrackList tracks={playlist.tracks} />
+
+              {/* Try Another Mood */}
+              <div className="mt-8 flex justify-center px-2">
+                <button
+                  onClick={handleTryAnother}
+                  className="
+                    w-full sm:w-auto
+                    px-8 py-3.5 sm:py-3
+                    min-h-[48px] sm:min-h-0
+                    rounded-full
+                    font-semibold text-white text-base
+                    bg-gray-800 border border-gray-600
+                    hover:border-purple-500 hover:bg-gray-700 hover:text-purple-300
+                    active:scale-95
+                    transition-all duration-200
+                    shadow-md
+                    cursor-pointer
+                    touch-manipulation
+                    btn-glow
+                  "
+                >
+                  🔄 Try Another Mood
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="text-center py-4 text-gray-600 text-xs px-4" role="contentinfo">
+        Made with ✨ AI · No sign-up needed
+      </footer>
     </div>
   )
 }

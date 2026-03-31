@@ -105,6 +105,8 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
             onChange={e => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={displayedPlaceholder || 'Describe your mood or situation…'}
+            aria-label="Describe your mood or situation"
+            aria-describedby="mood-hint"
             rows={3}
             disabled={isLoading}
             className="
@@ -122,7 +124,11 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           />
-          <span className="absolute bottom-2.5 right-3 sm:bottom-3 sm:right-4 text-xs text-gray-600 select-none hidden sm:inline">
+          <span
+            id="mood-hint"
+            className="absolute bottom-2.5 right-3 sm:bottom-3 sm:right-4 text-xs text-gray-600 select-none hidden sm:inline"
+            aria-hidden="true"
+          >
             {value.length > 0 && `${value.length} chars · Enter to generate`}
           </span>
         </div>
@@ -130,6 +136,7 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
         <button
           onClick={handleSubmit}
           disabled={!value.trim() || isLoading}
+          aria-label={isLoading ? 'Generating playlist…' : 'Generate playlist from mood'}
           className="
             w-full py-4
             min-h-[52px]
@@ -143,6 +150,7 @@ const MoodInput = forwardRef<HTMLDivElement, MoodInputProps>(
             disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100
             cursor-pointer
             touch-manipulation
+            btn-glow
           "
         >
           {isLoading ? (
