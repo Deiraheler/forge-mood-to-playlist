@@ -22,6 +22,8 @@ Usage in a route
 """
 
 import logging
+import re
+import string
 from typing import AsyncGenerator
 
 import redis.asyncio as aioredis
@@ -168,3 +170,107 @@ async def cache_set(
         logger.debug("Cache SET  key=%r  ttl=%ds", key, ttl_seconds)
     except RedisError as exc:
         logger.warning("Redis SET failed for key %r: %s: %s", key, type(exc).__name__, exc)
+
+
+# ---------------------------------------------------------------------------
+# Playlist-specific cache helpers
+# ---------------------------------------------------------------------------
+
+_CACHE_PREFIX = "playlist:"
+_PLAYLIST_TTL = 3600  # 1 hour
+
+# Pre-built translation table to strip ASCII punctuation
+_PUNCT_TABLE = str.maketrans("", "", string.punctuation)
+
+
+def normalize_mood(mood: str) -> str:
+    """
+    Normalise a raw mood string into a stable, deterministic cache-key fragment.
+
+    Steps applied in order:
+
+    1. Strip leading/trailing whitespace.
+    2. Collapse internal runs of whitespace to a single space.
+    3. Lowercase.
+    4. Remove ASCII punctuation.
+
+    Parameters
+    ----------
+    mood:
+        Raw mood string entered by the user.
+
+    Returns
+    -------
+    str
+        Normalised string suitable for use as a cache-key component.
+    """
+    mood = mood.strip()
+    mood = re.sub(r"\s+", " ", mood)
+    mood = mood.lower()
+    mood = mood.translate(_PUNCT_TABLE)
+    return mood
+
+
+async def get_cached_playlist(
+    redis: Redis | None,
+    mood: str,
+) -> "PlaylistResponse | None":
+    """
+    Retrieve a cached ``PlaylistResponse`` for the given mood.
+
+    The mood is normalised before lookup so that minor variations in
+    capitalisation / punctuation / spacing resolve to the same cache entry.
+
+    Parameters
+    ----------
+    redis:
+        Active Redis client, or ``None`` when Redis is unavailable.
+    mood:
+        Raw mood string (will be normalised internally).
+
+    Returns
+    -------
+    PlaylistResponse | None
+        Deserialised response if a cache entry exists, otherwise ``None``.
+    """
+    # Import here to avoid a circular dependency at module load time.
+    from models import PlaylistResponse  # noqa: PLC0415
+
+    key = _CACHE_PREFIX + normalize_mood(mood)
+    raw = await cache_get(redis, key)
+    if raw is None:
+        return None
+    try:
+        return PlaylistResponse.model_validate_json(raw)
+    except Exception as exc:  # malformed JSON / schema mismatch — treat as miss
+        logger.warning("Failed to deserialise cached playlist for key %r: %s", key, exc)
+        return None
+
+
+async def set_cached_playlist(
+    redis: Redis | None,
+    mood: str,
+    playlist: "PlaylistResponse",
+    ttl_seconds: int = _PLAYLIST_TTL,
+) -> None:
+    """
+    Serialise and store a ``PlaylistResponse`` in the cache.
+
+    Parameters
+    ----------
+    redis:
+        Active Redis client, or ``None`` when Redis is unavailable.
+    mood:
+        Raw mood string (will be normalised to form the cache key).
+    playlist:
+        The playlist response to cache.
+    ttl_seconds:
+        Time-to-live in seconds (default 1 hour).
+    """
+    key = _CACHE_PREFIX + normalize_mood(mood)
+    try:
+        serialised = playlist.model_dump_json()
+    except Exception as exc:
+        logger.warning("Failed to serialise playlist for caching (key=%r): %s", key, exc)
+        return
+    await cache_set(redis, key, serialised, ttl_seconds=ttl_seconds)
