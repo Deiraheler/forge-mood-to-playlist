@@ -1,4 +1,11 @@
+import MoodInput from './components/MoodInput'
+
 function App() {
+  const handleGenerate = (mood: string) => {
+    // API call will be wired up in a later task
+    console.log('Generate playlist for:', mood)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex flex-col">
       {/* Header */}
@@ -13,7 +20,7 @@ function App() {
 
       {/* Main content area */}
       <main className="flex-1 flex flex-col items-center justify-start px-4 pt-8">
-        {/* Playlist / input components will go here */}
+        <MoodInput onGenerate={handleGenerate} />
       </main>
     </div>
   )
