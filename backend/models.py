@@ -41,6 +41,16 @@ class Track(BaseModel):
         description="A 1–2 sentence explanation of why this track fits the mood.",
         examples=["Delicate and introspective; the sparse piano mirrors that wide-awake quiet."],
     )
+    youtube_link: str | None = Field(
+        default=None,
+        description="Optional YouTube URL for this track (e.g. https://www.youtube.com/watch?v=...).",
+        examples=["https://www.youtube.com/watch?v=TWcyIpul8OE"],
+    )
+    soundcloud_link: str | None = Field(
+        default=None,
+        description="Optional SoundCloud URL for this track.",
+        examples=["https://soundcloud.com/boniver/holocene"],
+    )
 
 
 class PlaylistResponse(BaseModel):

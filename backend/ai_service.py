@@ -83,7 +83,9 @@ no prose, no code fences — using exactly this structure:
     {
       "title": "<exact song title>",
       "artist": "<exact artist or band name>",
-      "vibe": "<1-2 sentence explanation of why this track fits the mood>"
+      "vibe": "<1-2 sentence explanation of why this track fits the mood>",
+      "youtube_link": "<YouTube watch URL for this track, e.g. https://www.youtube.com/watch?v=XXXXXXXXXXX, or null if unknown>",
+      "soundcloud_link": "<SoundCloud track URL, e.g. https://soundcloud.com/artist/track-slug, or null if unknown>"
     }
   ]
 }
@@ -93,6 +95,10 @@ Rules:
 - Choose real songs by real artists only. No fictional tracks.
 - Vary the era, tempo, and genre to create a journey through the mood.
 - The playlist_name must be poetic and unique — avoid generic titles.
+- For youtube_link: provide a real, valid YouTube watch URL (https://www.youtube.com/watch?v=...) \
+if you are confident it exists for this exact song; otherwise use null.
+- For soundcloud_link: provide a real SoundCloud track URL if you are confident it exists; \
+otherwise use null. Do not guess or fabricate URLs.
 - Respond with valid JSON only. Do not wrap in markdown code blocks.
 """
 
@@ -203,6 +209,8 @@ def _parse_playlist(raw: str, mood: str) -> PlaylistResponse:
                 title=t["title"],
                 artist=t["artist"],
                 vibe=t["vibe"],
+                youtube_link=t.get("youtube_link") or None,
+                soundcloud_link=t.get("soundcloud_link") or None,
             )
             for t in data["tracks"]
         ]

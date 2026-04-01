@@ -4,6 +4,8 @@ export interface Track {
   title: string;
   artist: string;
   vibe: string;
+  youtube_link?: string | null;
+  soundcloud_link?: string | null;
 }
 
 export interface PlaylistResponse {
