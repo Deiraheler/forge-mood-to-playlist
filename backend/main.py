@@ -11,7 +11,32 @@ from models import MoodRequest, PlaylistResponse
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Mood-to-Playlist API", version="0.1.0")
+app = FastAPI(
+    title="Mood-to-Playlist API",
+    version="1.0.0",
+    description=(
+        "Generate Spotify-style playlists from a mood or situation description using OpenAI. "
+        "No authentication required. Responses are cached in Redis for repeated moods.\n\n"
+        "## Quick Start\n"
+        "Send a `POST /api/generate` request with a JSON body containing a `mood` string "
+        "(1–200 characters) and receive a curated 10–15 track playlist with song titles, "
+        "artists, and per-track vibe descriptions.\n\n"
+        "## Rate Limiting\n"
+        "There is no built-in rate limiting in this version. For production deployments, "
+        "apply rate limiting at the reverse-proxy level (e.g. nginx `limit_req` or an API "
+        "gateway). Redis caching significantly reduces upstream OpenAI calls for repeated moods.\n\n"
+        "## Caching\n"
+        "Responses are cached in Redis using the mood string as the key. "
+        "Cache hits return instantly and include `\"cached\": true` in the response body "
+        "and an `X-Cache: HIT` response header."
+    ),
+    contact={
+        "name": "Mood-to-Playlist",
+    },
+    license_info={
+        "name": "MIT",
+    },
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,26 +47,61 @@ app.add_middleware(
 )
 
 
-@app.get("/api/health")
+@app.get("/api/health", tags=["Health"], summary="Health check")
 async def health():
+    """
+    Check that the API is running.
+
+    Returns a simple `{"status": "ok"}` payload. Use this endpoint for
+    liveness probes (e.g. Docker HEALTHCHECK, Kubernetes liveness probe).
+    It does **not** verify Redis or OpenAI connectivity — it only confirms
+    the web process is accepting requests.
+    """
     return {"status": "ok"}
 
 
-@app.post("/api/generate", response_model=PlaylistResponse, status_code=200)
+@app.post(
+    "/api/generate",
+    response_model=PlaylistResponse,
+    status_code=200,
+    tags=["Playlist"],
+    summary="Generate a mood-based playlist",
+    responses={
+        200: {"description": "Playlist successfully generated or returned from cache."},
+        422: {"description": "Validation error — mood is missing, empty, or exceeds 200 characters."},
+        500: {"description": "AI service error — OpenAI returned an unexpected or unparseable response."},
+    },
+)
 async def generate_playlist(
     request: MoodRequest,
     http_response: Response,
     redis: Redis | None = Depends(get_redis),
 ) -> PlaylistResponse:
     """
-    Generate a mood-based playlist.
+    Generate a curated 10–15 track playlist that matches the provided mood or situation.
 
-    - **mood**: A mood or situation string (1–200 characters). Pydantic enforces
-      this; invalid input returns HTTP 422 automatically.
-    - Returns a ``PlaylistResponse`` with playlist name, description, tracks,
-      and a ``cached`` boolean indicating whether the result came from cache.
-    - Sets the ``X-Cache`` response header to ``HIT`` or ``MISS``.
-    - Returns HTTP 500 if the AI service fails.
+    **Request body:**
+    - `mood` *(string, required)* — A free-text description of a mood or situation,
+      between 1 and 200 characters. Examples: `"3am can't sleep"`,
+      `"driving through rain"`, `"summer bbq with friends"`.
+
+    **Response body:**
+    - `mood` — Echo of the input mood string.
+    - `playlist_name` — A creative, evocative name for the playlist.
+    - `description` — A 2–3 sentence overall vibe description.
+    - `tracks` — List of 10–15 track objects, each with `title`, `artist`, and `vibe`.
+    - `cached` — `true` if this result was served from Redis cache, `false` otherwise.
+
+    **Response headers:**
+    - `X-Cache: HIT` — Response was served from Redis cache.
+    - `X-Cache: MISS` — Response was freshly generated via OpenAI.
+
+    **Error codes:**
+    - `422 Unprocessable Entity` — The `mood` field failed validation (missing, blank,
+      or longer than 200 characters). The response body contains a `detail` array
+      with field-level error messages from Pydantic.
+    - `500 Internal Server Error` — The OpenAI service returned an unexpected or
+      malformed response after all retry attempts were exhausted.
     """
     # Enforce the 200-char cap at the endpoint level (models.py allows up to 500;
     # we tighten that here as per the task spec).
